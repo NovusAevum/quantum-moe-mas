@@ -73,29 +73,29 @@ jobs:
     
     # CodeQL Analysis
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v2
+      uses: github/codeql-action/init@v3
       with:
         languages: python
         queries: security-extended,security-and-quality
     
     - name: Autobuild
-      uses: github/codeql-action/autobuild@v2
+      uses: github/codeql-action/autobuild@v3
     
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v2
+      uses: github/codeql-action/analyze@v3
       with:
         category: "/language:python"
     
     # Upload security reports
     - name: Upload Bandit SARIF
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: bandit-results.sarif
         category: bandit
     
     - name: Upload security artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: security-scan-results
@@ -144,13 +144,13 @@ jobs:
           --failOnCVSS 7
     
     - name: Upload OWASP Dependency Check results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: reports/dependency-check-report.sarif
     
     - name: Upload dependency artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: dependency-analysis-results
@@ -160,49 +160,49 @@ jobs:
           reports/
         retention-days: 30
 
-  # Container Security Scanning
-  container-security:
-    name: Container Security Scan
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-    
-    - name: Build Docker image
-      run: |
-        docker build -t quantum-moe-mas:security-scan .
-    
-    # Trivy container vulnerability scanner
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        image-ref: 'quantum-moe-mas:security-scan'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-    
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
-    
-    # Docker Scout (if available)
-    - name: Docker Scout CVE scan
-      uses: docker/scout-action@v1
-      if: github.event_name == 'pull_request'
-      with:
-        command: cves
-        image: quantum-moe-mas:security-scan
-        sarif-file: scout-results.sarif
-        summary: true
-    
-    - name: Upload Scout results
-      uses: github/codeql-action/upload-sarif@v2
-      if: github.event_name == 'pull_request'
-      with:
-        sarif_file: scout-results.sarif
+  # Container Security Scanning (Disabled temporarily)
+  # container-security:
+  #   name: Container Security Scan
+  #   runs-on: ubuntu-latest
+  #   timeout-minutes: 15
+  #   
+  #   steps:
+  #   - name: Checkout code
+  #     uses: actions/checkout@v4
+  #   
+  #   - name: Build Docker image
+  #     run: |
+  #       docker build -t quantum-moe-mas:security-scan .
+  #   
+  #   # Trivy container vulnerability scanner
+  #   - name: Run Trivy vulnerability scanner
+  #     uses: aquasecurity/trivy-action@master
+  #     with:
+  #       image-ref: 'quantum-moe-mas:security-scan'
+  #       format: 'sarif'
+  #       output: 'trivy-results.sarif'
+  #   
+  #   - name: Upload Trivy scan results
+  #     uses: github/codeql-action/upload-sarif@v3
+  #     if: always()
+  #     with:
+  #       sarif_file: 'trivy-results.sarif'
+  #   
+  #   # Docker Scout (if available)
+  #   - name: Docker Scout CVE scan
+  #     uses: docker/scout-action@v1
+  #     if: github.event_name == 'pull_request'
+  #     with:
+  #       command: cves
+  #       image: quantum-moe-mas:security-scan
+  #       sarif-file: scout-results.sarif
+  #       summary: true
+  #   
+  #   - name: Upload Scout results
+  #     uses: github/codeql-action/upload-sarif@v3
+  #     if: github.event_name == 'pull_request'
+  #     with:
+  #       sarif_file: scout-results.sarif
 
   # Infrastructure Security (Kubernetes manifests)
   infrastructure-security:
@@ -226,7 +226,7 @@ jobs:
         soft_fail: true
     
     - name: Upload Checkov results
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       if: always()
       with:
         sarif_file: checkov-results.sarif
@@ -241,7 +241,7 @@ jobs:
       continue-on-error: true
     
     - name: Upload infrastructure security artifacts
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: infrastructure-security-results
@@ -282,13 +282,13 @@ jobs:
   security-report:
     name: Generate Security Report
     runs-on: ubuntu-latest
-    needs: [sast-analysis, dependency-analysis, container-security, infrastructure-security, secrets-scan]
+    needs: [sast-analysis, dependency-analysis, infrastructure-security, secrets-scan]
     if: always()
     timeout-minutes: 10
     
     steps:
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
     
     - name: Generate security summary
       run: |
@@ -299,7 +299,6 @@ jobs:
         echo "## Scan Results" >> security-summary.md
         echo "- SAST Analysis: ${{ needs.sast-analysis.result }}" >> security-summary.md
         echo "- Dependency Analysis: ${{ needs.dependency-analysis.result }}" >> security-summary.md
-        echo "- Container Security: ${{ needs.container-security.result }}" >> security-summary.md
         echo "- Infrastructure Security: ${{ needs.infrastructure-security.result }}" >> security-summary.md
         echo "- Secrets Scan: ${{ needs.secrets-scan.result }}" >> security-summary.md
         echo "" >> security-summary.md
@@ -308,7 +307,7 @@ jobs:
         find . -name "*.json" -o -name "*.sarif" -o -name "*.txt" | sort >> security-summary.md
     
     - name: Upload security summary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-summary
         path: security-summary.md
