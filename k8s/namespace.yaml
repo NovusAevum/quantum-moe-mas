@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: quantum-moe-mas
+  labels:
+    app: quantum-moe-mas
+    managed-by: container-orchestrator
+    version: v1.0.0
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: quantum-moe-mas-quota
+  namespace: quantum-moe-mas
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: 20Gi
+    limits.cpu: "20"
+    limits.memory: 40Gi
+    persistentvolumeclaims: "10"
+    services: "10"
+    secrets: "10"
+    configmaps: "10"
+---
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: quantum-moe-mas-limits
+  namespace: quantum-moe-mas
+spec:
+  limits:
+  - default:
+      cpu: "500m"
+      memory: "512Mi"
+    defaultRequest:
+      cpu: "100m"
+      memory: "128Mi"
+    type: Container

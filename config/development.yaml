@@ -1,0 +1,56 @@
+# Development environment configuration
+# This file contains development-specific settings
+
+environment: development
+debug: true
+log_level: DEBUG
+
+# Database settings for development
+database:
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+  pool_recycle: 3600
+
+# Cache settings
+cache:
+  ttl_seconds: 300  # 5 minutes for development
+  max_size: 100
+
+# API settings
+api:
+  rate_limit_per_minute: 1000  # Higher limits for development
+  enable_cors: true
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:8501"
+    - "http://127.0.0.1:3000"
+    - "http://127.0.0.1:8501"
+
+# Monitoring
+monitoring:
+  enable_profiling: true
+  enable_debug_toolbar: true
+  metrics_enabled: false  # Disable in development
+
+# Security (relaxed for development)
+security:
+  jwt_access_token_expire_minutes: 60  # Longer expiry for development
+  enable_https_redirect: false
+  secure_cookies: false
+
+# External APIs
+external_apis:
+  timeout_seconds: 30
+  retry_attempts: 2
+  mock_responses: false  # Set to true to mock API responses
+
+# Quantum computing
+quantum:
+  use_simulator: true
+  max_qubits: 10
+
+# Business metrics
+business:
+  enable_analytics: false  # Disable analytics in development
+  mock_roi_data: true

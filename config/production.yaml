@@ -1,0 +1,71 @@
+# Production environment configuration
+# This file contains production-specific settings
+
+environment: production
+debug: false
+log_level: INFO
+
+# Database settings for production
+database:
+  pool_size: 20
+  max_overflow: 30
+  pool_timeout: 60
+  pool_recycle: 7200
+  echo: false
+
+# Cache settings
+cache:
+  ttl_seconds: 3600  # 1 hour
+  max_size: 10000
+
+# API settings
+api:
+  rate_limit_per_minute: 100
+  enable_cors: false
+  cors_origins: []  # Restrict CORS in production
+
+# Monitoring
+monitoring:
+  enable_profiling: false
+  enable_debug_toolbar: false
+  metrics_enabled: true
+  health_check_interval: 30
+
+# Security (strict for production)
+security:
+  jwt_access_token_expire_minutes: 15  # Shorter expiry for production
+  enable_https_redirect: true
+  secure_cookies: true
+  csrf_protection: true
+
+# External APIs
+external_apis:
+  timeout_seconds: 10
+  retry_attempts: 3
+  circuit_breaker_threshold: 5
+  circuit_breaker_timeout: 60
+
+# Quantum computing
+quantum:
+  use_simulator: false
+  max_qubits: 127
+  optimization_level: 3
+
+# Business metrics
+business:
+  enable_analytics: true
+  roi_tracking: true
+  performance_monitoring: true
+
+# Performance optimization
+performance:
+  enable_caching: true
+  cache_compression: true
+  async_processing: true
+  batch_size: 100
+
+# Backup and recovery
+backup:
+  enable_automated_backup: true
+  backup_interval_hours: 6
+  retention_days: 30

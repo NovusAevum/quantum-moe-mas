@@ -1,0 +1,98 @@
+# Logging configuration for Quantum MoE MAS
+# This file provides structured logging configuration for different environments
+
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  json:
+    format: '%(asctime)s %(name)s %(levelname)s %(message)s'
+    class: pythonjsonlogger.jsonlogger.JsonFormatter
+  
+  standard:
+    format: '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+  
+  detailed:
+    format: '%(asctime)s [%(levelname)s] %(name)s:%(lineno)d - %(funcName)s(): %(message)s'
+    datefmt: '%Y-%m-%d %H:%M:%S'
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    level: INFO
+    formatter: standard
+    stream: ext://sys.stdout
+  
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: json
+    filename: logs/quantum_moe_mas.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+  
+  error_file:
+    class: logging.handlers.RotatingFileHandler
+    level: ERROR
+    formatter: detailed
+    filename: logs/errors.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 5
+    encoding: utf8
+  
+  security_file:
+    class: logging.handlers.RotatingFileHandler
+    level: WARNING
+    formatter: json
+    filename: logs/security.log
+    maxBytes: 10485760  # 10MB
+    backupCount: 10
+    encoding: utf8
+
+loggers:
+  quantum_moe_mas:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  quantum_moe_mas.security:
+    level: WARNING
+    handlers: [console, security_file]
+    propagate: false
+  
+  quantum_moe_mas.performance:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  quantum_moe_mas.business:
+    level: INFO
+    handlers: [console, file]
+    propagate: false
+  
+  # Third-party loggers
+  uvicorn:
+    level: INFO
+    handlers: [console]
+    propagate: false
+  
+  fastapi:
+    level: INFO
+    handlers: [console]
+    propagate: false
+  
+  sqlalchemy:
+    level: WARNING
+    handlers: [console]
+    propagate: false
+  
+  httpx:
+    level: WARNING
+    handlers: [console]
+    propagate: false
+
+root:
+  level: INFO
+  handlers: [console, file, error_file]
