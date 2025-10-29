@@ -1,0 +1,62 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: quantum-config
+  namespace: quantum-moe-mas
+data:
+  app.yaml: |
+    app:
+      name: "Quantum MoE MAS"
+      version: "1.0.0"
+      environment: "production"
+    
+    moe:
+      experts:
+        max_active: 2
+        confidence_threshold: 0.8
+        load_balancing: true
+    
+    rag:
+      vector_db:
+        provider: "supabase"
+        embedding_model: "sentence-transformers/all-MiniLM-L6-v2"
+        chunk_size: 1000
+        chunk_overlap: 200
+    
+    agents:
+      cyber:
+        enabled: true
+        osint_sources: ["shodan", "virustotal", "threatcrowd"]
+      cloud:
+        enabled: true
+        providers: ["aws", "gcp", "azure"]
+      marketing:
+        enabled: true
+        hubspot_integration: true
+      quantum:
+        enabled: true
+        qiskit_backend: "aer_simulator"
+    
+    monitoring:
+      prometheus:
+        enabled: true
+        port: 9090
+      grafana:
+        enabled: true
+        port: 3000
+    
+    security:
+      encryption:
+        algorithm: "AES-256-GCM"
+      authentication:
+        jwt_secret_key: "CHANGE_ME_IN_PRODUCTION"
+        token_expiry: 3600
+    
+    performance:
+      caching:
+        redis_enabled: true
+        ttl: 3600
+      scaling:
+        min_replicas: 2
+        max_replicas: 10
+        target_cpu: 70

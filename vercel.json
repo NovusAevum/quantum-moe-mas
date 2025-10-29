@@ -1,0 +1,43 @@
+{
+  "version": 2,
+  "name": "quantum-moe-mas",
+  "builds": [
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
+    },
+    {
+      "src": "streamlit_app.py",
+      "use": "@vercel/python",
+      "config": {
+        "maxLambdaSize": "50mb",
+        "runtime": "python3.11"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "api/index.py"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "streamlit_app.py"
+    }
+  ],
+  "env": {
+    "PYTHONPATH": "./src",
+    "VERCEL_AI_GATEWAY_API_KEY": "vck_7ARZrae7lMPjYUfnwLvupOOeYi2MPKT90wKk6fOTPpvDYhyaXZ3NWw8E"
+  },
+  "functions": {
+    "streamlit_app.py": {
+      "maxDuration": 60
+    },
+    "api/index.py": {
+      "maxDuration": 30
+    }
+  },
+  "installCommand": "pip install -r requirements.txt",
+  "buildCommand": "echo 'Build completed'",
+  "framework": null
+}

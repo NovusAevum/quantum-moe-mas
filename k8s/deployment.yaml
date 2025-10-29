@@ -1,0 +1,131 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quantum-moe-mas
+  namespace: quantum-moe-mas
+  labels:
+    app: quantum-moe-mas
+    version: v1
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: quantum-moe-mas
+  template:
+    metadata:
+      labels:
+        app: quantum-moe-mas
+        version: v1
+    spec:
+      containers:
+      - name: quantum-moe-mas
+        image: quantum-moe-mas:latest
+        ports:
+        - containerPort: 8501
+          name: streamlit
+        - containerPort: 8000
+          name: api
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: PYTHONPATH
+          value: "/app/src"
+        - name: SUPABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: supabase-url
+        - name: SUPABASE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: quantum-secrets
+              key: supabase-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+        volumeMounts:
+        - name: config-volume
+          mountPath: /app/config
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: quantum-config
+      imagePullSecrets:
+      - name: registry-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quantum-moe-mas-service
+  namespace: quantum-moe-mas
+  labels:
+    app: quantum-moe-mas
+spec:
+  selector:
+    app: quantum-moe-mas
+  ports:
+  - name: streamlit
+    port: 8501
+    targetPort: 8501
+    protocol: TCP
+  - name: api
+    port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quantum-moe-mas-ingress
+  namespace: quantum-moe-mas
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - quantum-moe-mas.example.com
+    secretName: quantum-moe-mas-tls
+  rules:
+  - host: quantum-moe-mas.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: quantum-moe-mas-service
+            port:
+              number: 8501
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: quantum-moe-mas-service
+            port:
+              number: 8000
